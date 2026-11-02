@@ -2,27 +2,68 @@
 
 namespace PassMaster.Runner.Harness;
 
-public class StudentHistory : IReadOnlyStudentHistory
+/// <summary>
+/// История студента. Хранится в списке, потому что количество дней
+/// в live-режиме не ограничено.
+/// </summary>
+public sealed class StudentHistory : IStudentHistory
 {
-    private readonly bool[,] _attended = new bool[Constants.DaysCount, Constants.SubjectsCount];
-    private readonly bool[,] _asked = new bool[Constants.DaysCount, Constants.SubjectsCount];
-    private readonly bool[,] _askedKnown = new bool[Constants.DaysCount, Constants.SubjectsCount];
-
-    public void Record(int day, int subject, bool attended, bool asked)
+    private sealed class DayEntry
     {
-        _attended[day, subject] = attended;
-        _asked[day, subject] = asked;
-        _askedKnown[day, subject] = attended;
+        public readonly bool[] Attended = new bool[Constants.SubjectsCount];
+        public readonly bool[] Asked = new bool[Constants.SubjectsCount];
+        public readonly bool[] AskedKnown = new bool[Constants.SubjectsCount];
     }
-    
+
+    private readonly List<DayEntry> _days = new();
+
+    public void Record(int day, Subject subject, bool attended, bool asked)
+    {
+        if (day < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(day), "Номер дня не может быть отрицательным.");
+        }
+
+        EnsureDayExists(day);
+
+        int s = (int)subject;
+        DayEntry entry = _days[day];
+
+        entry.Attended[s] = attended;
+        entry.Asked[s] = asked;
+
+        // Вопрос известен, только если студент был на паре.
+        entry.AskedKnown[s] = attended;
+    }
+
     public bool Attended(int day, Subject subject)
     {
-        return _attended[day, (int)subject];
+        if (day < 0 || day >= _days.Count)
+        {
+            return false;
+        }
+
+        return _days[day].Attended[(int)subject];
     }
 
     public bool? WasAsked(int day, Subject subject)
     {
-        if (!_askedKnown[day, (int)subject]) return null;
-        return _asked[day, (int)subject];
+        if (day < 0 || day >= _days.Count)
+        {
+            return null;
+        }
+
+        DayEntry entry = _days[day];
+        int s = (int)subject;
+
+        return entry.AskedKnown[s] ? entry.Asked[s] : null;
+    }
+
+    private void EnsureDayExists(int day)
+    {
+        while (_days.Count <= day)
+        {
+            _days.Add(new DayEntry());
+        }
     }
 }
