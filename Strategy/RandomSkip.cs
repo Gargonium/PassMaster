@@ -4,7 +4,7 @@ namespace PassMaster.Strategy;
 
 public class RandomSkip : ISkipStrategy
 {
-    public string Name => "RandomStudent (random attend)";
+    public string Name => "RandomSkip (random attend)";
 
     private readonly Random _rnd = new Random();
 
