@@ -7,10 +7,9 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <!-- Generic Host: DI, BackgroundService, IHostApplicationLifetime. -->
     <ItemGroup>
-      <Content Include="Contracts\Contracts.csproj" />
-      <Content Include="Runner\Runner.csproj" />
-      <Content Include="Strategy\Strategy.csproj" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
     </ItemGroup>
 
 </Project>
